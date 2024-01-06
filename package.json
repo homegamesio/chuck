@@ -1,0 +1,15 @@
+{
+  "name": "chuck",
+  "version": "1.0.0",
+  "description": "analyzes homegames game servers",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "chuck": "node index.js 1000"
+  },
+  "author": "Joseph Garcia",
+  "license": "ISC",
+  "dependencies": {
+    "homegames-core": "file:../homegames-core"
+  }
+}
