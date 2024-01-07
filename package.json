@@ -10,6 +10,7 @@
   "author": "Joseph Garcia",
   "license": "ISC",
   "dependencies": {
-    "homegames-core": "file:../homegames-core"
+    "homegames-core": "file:../homegames-core",
+    "ws": "^8.16.0"
   }
 }

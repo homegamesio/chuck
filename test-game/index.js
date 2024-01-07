@@ -6,8 +6,13 @@ class TestGame extends Game {
             aspectRatio: {x: 16, y: 9},
             author: 'Joseph Garcia',
             thumbnail: 'f103961541614b68c503a9ae2fd4cc47',
-            squishVersion: '1005'
+            squishVersion: '1005',
+            tickRate: 10
         };
+    }
+
+    tick() {
+        // no op
     }
 
     constructor() {
