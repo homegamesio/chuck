@@ -4,7 +4,7 @@
   "description": "analyzes homegames game servers",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node test-main.js",
     "chuck": "node index.js 1000"
   },
   "author": "Joseph Garcia",

@@ -93,7 +93,7 @@ class TestRun {
 }
 
 const run = async () => {
-    await new TestRun('push the socket with 200fps', TEST_GAME_PATH, 200, '1005', 5, 3000, { avgFps: { min: 180, max: 205 } }).run();
+    await new TestRun('push the socket with 200fps', TEST_GAME_PATH, 200, '1005', 8, 3000, { avgFps: { min: 180, max: 205 } }).run();
     await new TestRun('100fps small node count', TEST_GAME_PATH, 100, '1005', 3, 3000, { avgFps: { min: 90, max: 110 } }).run();
     await new TestRun('100fps medium node count', TEST_GAME_PATH, 100, '1005', 5, 3000, { avgFps: { min: 90, max: 110 } }).run();
     await new TestRun('100fps large node count', TEST_GAME_PATH, 100, '1005', 10, 3000, { avgFps: { min: 90, max: 110 } }).run();
