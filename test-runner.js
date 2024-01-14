@@ -1,19 +1,10 @@
-#!/usr/bin/env node
-
 const process = require('process');
 const path = require('path');
 const http = require('http');
 
 const { connect, getStats, parseAssets } = require('./common');
 
-const targetArgIndex = process.argv.findIndex(i => i === '--target');
-
-if (targetArgIndex < 0 || !process.argv[targetArgIndex + 1]) {
-    console.error('Missing target, eg. --target localhost:3000');
-    process.exit(1);
-}
-
-const target = process.argv[targetArgIndex + 1];
+const target = 'localhost:3000';
 
 const homegamesCorePath = path.dirname(require.resolve('homegames-core'));
 const homegamesDepsPath = path.join(homegamesCorePath, 'node_modules');
@@ -36,6 +27,27 @@ process.env.BASE_HEIGHT = 2;
 process.env.SCALE_FACTOR = 1;
 process.env.TICK_RATE = 4000;
 
+
+//const target = process.env.TARGET_SERVER;
+//
+//console.log("THIS IS TARGET SERVER");
+//console.log(target);
+//
+//const homegamesCorePath = path.dirname(require.resolve('homegames-core'));
+//const homegamesDepsPath = path.join(homegamesCorePath, 'node_modules');
+//const squishPath = require.resolve('squish-1005', { paths: [ homegamesDepsPath ] });
+//
+//const squishMap = require('./squish-map');
+//
+//const targetPort = Number(target.split(':')[1]);
+//process.env.SQUISH_PATH=squishPath;
+//
+//// test game specific
+//process.env.BASE_WIDTH = 2;
+//process.env.BASE_HEIGHT = 2;
+//process.env.SCALE_FACTOR = 1;
+//process.env.FRAME_TOTAL = 100;
+
 const ASSET_BUNDLE = 1;
 const READY_MESSAGE = 2;
 const GAME_FRAME = 3;
@@ -57,8 +69,9 @@ let gameAssets = {
 let frames = [];
 
 const handleGameFrame = (msg) => {
+    console.log('resultzz:bnbgbgbgbg');
     frames.push({ time: Date.now(), data: msg });
-    if (frames.length % 10 === 0) {
+    if (frames.length === process.env.FRAME_TOTAL) {
         const totalMap = Object.assign({
             playerId,
             squishVersion,
@@ -68,12 +81,8 @@ const handleGameFrame = (msg) => {
             },
             gameAssets,
         }, getStats(frames));
-        console.log(totalMap);
-    }
-
-    if (frames.length > 1000) {
-        console.log('cool');
-        process.exit(1);
+        console.log(`resultzz:${totalMap}`);
+        process.exit(0);
     }
 };
 
@@ -130,26 +139,4 @@ const handleEvent = (payload) => {
 
 setTimeout(() => {
     connect(target, handleMessage);
-//    const ws = new WebSocket(`ws://${target}`);
-//
-//    ws.on('error', (err) => {
-//        console.log("error!");
-//        console.log(err);
-//    });
-//
-//    ws.on('open', () => {
-//        ws.send(JSON.stringify({
-//            type: 'ready',
-//            clientInfo: {
-//                deviceType: 'desktop',
-//                aspectRatio: (16/9)
-//            }
-//        }));
-//    });
-//
-//    ws.on('message', (data) => {
-//        const ting = new Uint8ClampedArray(data);
-//        handleMessage(ting);
-//    });
-
-}, 1500);
+}, 500);
