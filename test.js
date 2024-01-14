@@ -7,7 +7,6 @@ const http = require('http');
 const WebSocket = require('ws');
 
 const targetArgIndex = process.argv.findIndex(i => i === '--target');
-const portArgIndex = process.argv.findIndex(i=> i === '--port');
 
 if (targetArgIndex < 0 || !process.argv[targetArgIndex + 1]) {
     console.error('Missing target, eg. --target localhost:3000');
@@ -15,13 +14,6 @@ if (targetArgIndex < 0 || !process.argv[targetArgIndex + 1]) {
 }
 
 const target = process.argv[targetArgIndex + 1];
-let gameServerPort;
-
-if (portArgIndex >= 0 && process.argv[portArgIndex + 1]) {
-    gameServerPort = new Number(process.argv[portArgIndex + 1]);
-    console.log('you also want to run watch server on ' + gameServerPort);
-}
-
 
 const homegamesCorePath = path.dirname(require.resolve('homegames-core'));
 const homegamesDepsPath = path.join(homegamesCorePath, 'node_modules');
@@ -29,13 +21,20 @@ const squishPath = require.resolve('squish-1005', { paths: [ homegamesDepsPath ]
 
 const squishMap = require('./squish-map');
 
-process.env.HOME_PORT=3001;
+const targetPort = Number(target.split(':')[1]);
+process.env.HOME_PORT=targetPort;
 process.env.START_PATH=`/Users/josephgarcia/homegames/chuck/test-game`;
-process.env.HOMENAMES_PORT=3000;
-process.env.GAME_SERVER_PORT_RANGE_MIN=3050;
-process.env.GAME_SERVER_PORT_RANGE_MAX=3051;
-process.env.LOG_PATH=`/Users/josephgarcia/homegames/chuck/homegames_log.txt`;
+//process.env.HOMENAMES_PORT=targetPort;
+//process.env.GAME_SERVER_PORT_RANGE_MIN=3050;
+//process.env.GAME_SERVER_PORT_RANGE_MAX=3051;
+//process.env.LOG_PATH=`/Users/josephgarcia/homegames/chuck/homegames_log.txt`;
 process.env.SQUISH_PATH=squishPath;
+
+// test game specific
+process.env.BASE_WIDTH = 2;
+process.env.BASE_HEIGHT = 2;
+process.env.SCALE_FACTOR = 1;
+process.env.TICK_RATE = 4000;
 
 const ASSET_BUNDLE = 1;
 const READY_MESSAGE = 2;
@@ -123,17 +122,6 @@ const getStats = () => {
     }
 };
 
-const runReportingServer = (port) => { 
-    const app = (req, res) => {
-        if (req.method === 'GET') {
-            res.setHeader('Content-Type', 'application/json');
-            res.end(JSON.stringify(getStats()));
-        }
-    };
-
-    http.createServer(app).listen(port);
-}
-
 const ASSET_START = 1;
 
 const IMAGE_SUBTYPE = 1;
@@ -189,6 +177,14 @@ const storeAssets = (buf) => {
 
 const handleGameFrame = (msg) => {
     frames.push({ time: Date.now(), data: msg });
+    if (frames.length % 10 === 0) {
+        console.log(getStats());
+    }
+
+    if (frames.length > 1000) {
+        console.log('cool');
+        process.exit(1);
+    }
 };
 
 const handleMessage = (msg) => {
@@ -243,7 +239,7 @@ const handleEvent = (payload) => {
 };
 
 setTimeout(() => {
-    const ws = new WebSocket('ws://localhost:3001');// + process.env.HOME_PORT);
+    const ws = new WebSocket(`ws://${target}`);
 
     ws.on('error', (err) => {
         console.log("error!");
@@ -264,9 +260,5 @@ setTimeout(() => {
         const ting = new Uint8ClampedArray(data);
         handleMessage(ting);
     });
-
-    if (process.env.SERVER_PORT) {
-        runReportingServer(process.env.SERVER_PORT);
-    }
 
 }, 1500);
