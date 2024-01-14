@@ -4,7 +4,10 @@ const http = require('http');
 
 const { connect, getStats, parseAssets } = require('./common');
 
-const target = 'localhost:3000';
+const target = process.env.TARGET_SERVER;
+
+console.log("THIS IS TARGET SERVER");
+console.log(target);
 
 const homegamesCorePath = path.dirname(require.resolve('homegames-core'));
 const homegamesDepsPath = path.join(homegamesCorePath, 'node_modules');
@@ -13,40 +16,13 @@ const squishPath = require.resolve('squish-1005', { paths: [ homegamesDepsPath ]
 const squishMap = require('./squish-map');
 
 const targetPort = Number(target.split(':')[1]);
-process.env.HOME_PORT=targetPort;
-process.env.START_PATH=`/Users/josephgarcia/homegames/chuck/test-game`;
-//process.env.HOMENAMES_PORT=targetPort;
-//process.env.GAME_SERVER_PORT_RANGE_MIN=3050;
-//process.env.GAME_SERVER_PORT_RANGE_MAX=3051;
-//process.env.LOG_PATH=`/Users/josephgarcia/homegames/chuck/homegames_log.txt`;
 process.env.SQUISH_PATH=squishPath;
 
 // test game specific
 process.env.BASE_WIDTH = 2;
 process.env.BASE_HEIGHT = 2;
 process.env.SCALE_FACTOR = 1;
-process.env.TICK_RATE = 4000;
-
-
-//const target = process.env.TARGET_SERVER;
-//
-//console.log("THIS IS TARGET SERVER");
-//console.log(target);
-//
-//const homegamesCorePath = path.dirname(require.resolve('homegames-core'));
-//const homegamesDepsPath = path.join(homegamesCorePath, 'node_modules');
-//const squishPath = require.resolve('squish-1005', { paths: [ homegamesDepsPath ] });
-//
-//const squishMap = require('./squish-map');
-//
-//const targetPort = Number(target.split(':')[1]);
-//process.env.SQUISH_PATH=squishPath;
-//
-//// test game specific
-//process.env.BASE_WIDTH = 2;
-//process.env.BASE_HEIGHT = 2;
-//process.env.SCALE_FACTOR = 1;
-//process.env.FRAME_TOTAL = 100;
+process.env.FRAME_TOTAL = 100;
 
 const ASSET_BUNDLE = 1;
 const READY_MESSAGE = 2;
@@ -69,19 +45,9 @@ let gameAssets = {
 let frames = [];
 
 const handleGameFrame = (msg) => {
-    console.log('resultzz:bnbgbgbgbg');
     frames.push({ time: Date.now(), data: msg });
-    if (frames.length === process.env.FRAME_TOTAL) {
-        const totalMap = Object.assign({
-            playerId,
-            squishVersion,
-            sessionMetadata: {
-                bezelInfo,
-                aspectRatio
-            },
-            gameAssets,
-        }, getStats(frames));
-        console.log(`resultzz:${totalMap}`);
+    if (frames.length === Number(process.env.FRAME_TOTAL)) {
+        console.log(`resultzz:${JSON.stringify(getStats(frames))}`);
         process.exit(0);
     }
 };
@@ -139,4 +105,4 @@ const handleEvent = (payload) => {
 
 setTimeout(() => {
     connect(target, handleMessage);
-}, 500);
+}, 1500);

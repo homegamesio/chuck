@@ -25,6 +25,7 @@ class TestScenario {
     }
 
     run() {
+        const myEnv = process.env;
         const proc = fork(
             'test-runner.js', 
             [], 
@@ -35,7 +36,8 @@ class TestScenario {
                     START_PATH: this.gamePath, 
                     SQUISH_PATH: this.squishPath,
                     TARGET_SERVER: `localhost:${this.port}`,
-                    HOME_PORT: 3000
+                    HOME_PORT: 3000,
+                    ...myEnv
                 }
             }
         );
@@ -44,7 +46,7 @@ class TestScenario {
         proc.stdout.on('data', (data) => {
             console.log(data.toString());
             if (data.toString().startsWith(startString)) {
-                const parsed = JSON.parse(data.substring(startString.length));
+                const parsed = JSON.parse(data.toString().substring(startString.length));
                 console.log(parsed);
             }
         });
@@ -64,5 +66,5 @@ class TestScenario {
     }
 }
 
-const testScenario1 = new TestScenario(TEST_GAME_PATH, 10, '1005', 3000);
+const testScenario1 = new TestScenario(TEST_GAME_PATH, 100, '1005', 3000);
 testScenario1.run();
