@@ -6,9 +6,6 @@ const { connect, getStats, parseAssets } = require('./common');
 
 const target = process.env.TARGET_SERVER;
 
-console.log("THIS IS TARGET SERVER");
-console.log(target);
-
 const homegamesCorePath = path.dirname(require.resolve('homegames-core'));
 const homegamesDepsPath = path.join(homegamesCorePath, 'node_modules');
 const squishPath = require.resolve('squish-1005', { paths: [ homegamesDepsPath ] });
@@ -21,8 +18,7 @@ process.env.SQUISH_PATH=squishPath;
 // test game specific
 process.env.BASE_WIDTH = 2;
 process.env.BASE_HEIGHT = 2;
-process.env.SCALE_FACTOR = 1;
-process.env.FRAME_TOTAL = 100;
+//process.env.SCALE_FACTOR = 1;
 
 const ASSET_BUNDLE = 1;
 const READY_MESSAGE = 2;
@@ -47,7 +43,7 @@ let frames = [];
 const handleGameFrame = (msg) => {
     frames.push({ time: Date.now(), data: msg });
     if (frames.length === Number(process.env.FRAME_TOTAL)) {
-        console.log(`resultzz:${JSON.stringify(getStats(frames))}`);
+        console.log(`resultzz:${JSON.stringify(getStats(frames, process.env.SQUISH_PATH))}`);
         process.exit(0);
     }
 };

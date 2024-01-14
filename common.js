@@ -48,7 +48,7 @@ const calcPerformance = (frames, frameCount) => {
     }
 };
 
-const getStats = (frames) => {
+const getStats = (frames, squishPath = null) => {
     const last100StartIndex = Math.max(0, frames.length - 100);
     const last100EndIndex = Math.min(frames.length - 1, last100StartIndex + 100);
 
@@ -57,7 +57,7 @@ const getStats = (frames) => {
 
     const avgMillisPerFrame = (last100End - last100Start) / 100;
 
-    return {
+    const data = {
         totalFrames: frames.length,
         performance: {
             '100': calcPerformance(frames, 100),
@@ -65,6 +65,29 @@ const getStats = (frames) => {
             'all': calcPerformance(frames)
         }
     }
+
+    if (squishPath) {
+        const startTime = Date.now();
+        const unsquishedPayload = unsquishPayload(frames[frames.length - 1].data, squishPath);
+        const endTime = Date.now();
+
+        data['totalNodes'] = unsquishedPayload.length;
+        data['unsquishTime'] = endTime - startTime;
+    }
+
+    return data;
+};
+
+const unsquishPayload = (payload, squishPath) => {
+    let i = 0;
+    let unsquished = [];
+    const { unsquish } = require(squishPath);
+    while (i < payload.length) {
+        const frameSize = payload[i + 1] + payload[i + 2] + payload[i + 3];
+        unsquished.push(unsquish(payload.slice(i, i + frameSize)));
+        i += frameSize;
+    }
+    return unsquished;
 };
 
 const parseAssets = (buf) => {
