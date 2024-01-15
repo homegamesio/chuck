@@ -6,6 +6,8 @@ const http = require('http');
 
 const WebSocket = require('ws');
 
+const { connect, getStats, parseAssets } = require('./common');
+
 const targetArgIndex = process.argv.findIndex(i => i === '--target');
 const portArgIndex = process.argv.findIndex(i=> i === '--port');
 
@@ -18,7 +20,7 @@ const target = process.argv[targetArgIndex + 1];
 let gameServerPort;
 
 if (portArgIndex >= 0 && process.argv[portArgIndex + 1]) {
-    gameServerPort = new Number(process.argv[portArgIndex + 1]);
+    gameServerPort = Number(process.argv[portArgIndex + 1]);
     console.log('you also want to run watch server on ' + gameServerPort);
 }
 
@@ -29,19 +31,9 @@ const squishPath = require.resolve('squish-1005', { paths: [ homegamesDepsPath ]
 
 const squishMap = require('./squish-map');
 
-process.env.HOME_PORT=3001;
-process.env.START_PATH=`/Users/josephgarcia/homegames/chuck/test-game`;
-process.env.HOMENAMES_PORT=3000;
-process.env.GAME_SERVER_PORT_RANGE_MIN=3050;
-process.env.GAME_SERVER_PORT_RANGE_MAX=3051;
-process.env.LOG_PATH=`/Users/josephgarcia/homegames/chuck/homegames_log.txt`;
-process.env.SQUISH_PATH=squishPath;
-
 const ASSET_BUNDLE = 1;
 const READY_MESSAGE = 2;
 const GAME_FRAME = 3;
-
-const homegames = require('homegames-core');
 
 let bezelInfo;
 let aspectRatio;
@@ -57,77 +49,11 @@ let gameAssets = {
 };
 let frames = [];
 
-const calcPerformance = (frames, frameCount) => {
-    if (!frameCount) {
-        frameCount = frames.length;
-    }
-    const sIndex = Math.max(0, frames.length - frameCount);
-    const eIndex = Math.min(frames.length - 1, sIndex + frameCount);
-
-    let start = frames[sIndex].time;
-    let end = frames[eIndex].time;
-
-    let lowestFrameTime;
-    let highestFrameTime;
-    let totalFrameTime = 0;
-    let avgFrameTime;
-
-    for (let i = sIndex; i < eIndex - 1; i++) {
-        const timeDiff = frames[i + 1].time - frames[i].time;
-        if (!lowestFrameTime || timeDiff < lowestFrameTime) {
-            lowestFrameTime = timeDiff;
-        }
-
-        if (!highestFrameTime || timeDiff > highestFrameTime) {
-            highestFrameTime = timeDiff;
-        }
-        
-        totalFrameTime += timeDiff;
-    }
-
-    avgFrameTime = totalFrameTime / (frameCount);
-
-    const avgMillisPerFrame = (end - start) / frameCount;
-
-    return {
-        avgFps: 1000 / avgMillisPerFrame,
-        avgFrameTime,
-        lowestFrameTime,
-        highestFrameTime
-    }
-};
-
-const getStats = () => {
-    const last100StartIndex = Math.max(0, frames.length - 100);
-    const last100EndIndex = Math.min(frames.length - 1, last100StartIndex + 100);
-
-    let last100Start = frames[last100StartIndex].time;
-    let last100End = frames[last100EndIndex].time;
-
-    const avgMillisPerFrame = (last100End - last100Start) / 100;
-
-    return {
-        playerId,
-        squishVersion,
-        sessionMetadata: {
-            bezelInfo,
-            aspectRatio
-        },
-        gameAssets,
-        totalFrames: frames.length,
-        performance: {
-            '100': calcPerformance(frames, 100),
-            '1000': calcPerformance(frames, 1000),
-            'all': calcPerformance(frames)
-        }
-    }
-};
-
 const runReportingServer = (port) => { 
     const app = (req, res) => {
         if (req.method === 'GET') {
             res.setHeader('Content-Type', 'application/json');
-            res.end(JSON.stringify(getStats()));
+            res.end(JSON.stringify(getStats(frames)));
         }
     };
 
@@ -243,7 +169,7 @@ const handleEvent = (payload) => {
 };
 
 setTimeout(() => {
-    const ws = new WebSocket('ws://localhost:3001');// + process.env.HOME_PORT);
+    const ws = new WebSocket(`ws://${target}`);
 
     ws.on('error', (err) => {
         console.log("error!");
@@ -265,8 +191,8 @@ setTimeout(() => {
         handleMessage(ting);
     });
 
-    if (process.env.SERVER_PORT) {
-        runReportingServer(process.env.SERVER_PORT);
+    if (gameServerPort) {
+        runReportingServer(gameServerPort);
     }
 
 }, 1500);

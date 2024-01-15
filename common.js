@@ -52,6 +52,10 @@ const getStats = (frames, squishPath = null) => {
     const last100StartIndex = Math.max(0, frames.length - 100);
     const last100EndIndex = Math.min(frames.length - 1, last100StartIndex + 100);
 
+    if (frames.length === 0) {
+        return {};
+    }
+
     let last100Start = frames[last100StartIndex].time;
     let last100End = frames[last100EndIndex].time;
 
