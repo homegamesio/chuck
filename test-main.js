@@ -25,7 +25,7 @@ const assertGreaterThan = (a, b) => {
 };
 
 class TestRun {
-    constructor(name, gamePath, tickRate, squishVersion, scaleFactor, port, spec) {
+    constructor(name, gamePath, tickRate, squishVersion, scaleFactor, port, spec, timeout, expectedFrameCount) {
         this.name = name;
         this.scaleFactor = scaleFactor;
         this.gamePath = gamePath;
@@ -34,12 +34,15 @@ class TestRun {
         this.squishPath = require.resolve(`squish-${squishVersion}`, { paths: [ homegamesDepsPath ] });
         this.port = port;
         this.spec = spec;
+        this.timeout = timeout;
+        this.expectedFrameCount = expectedFrameCount;
     }
 
     run() {
         return new Promise((resolve, reject) => {
-            console.log('Running ' + this.name);
+            console.log('Running ' + this.name + ' with timeout ' + this.timeout?.duration);
             const myEnv = process.env;
+
             const proc = fork(
                 'test-runner.js', 
                 [], 
@@ -53,7 +56,9 @@ class TestRun {
                         TARGET_SERVER: `localhost:${this.port}`,
                         HOME_PORT: this.port,
                         SCALE_FACTOR: this.scaleFactor,
-                        FRAME_TOTAL: 1000
+                        SQUISH_VERSION: this.squishVersion,
+                        FRAME_TOTAL: 1000,
+                        TIMEOUT: this.timeout?.duration || ''
                     }
                 }
             );
@@ -73,6 +78,11 @@ class TestRun {
                         }
                     }
 
+                    if (this.expectedFrameCount !== undefined) {
+                        assertEquals(parsed.totalFrames, this.expectedFrameCount);
+                    }
+
+                    this.resolved = true;
                     resolve(parsed);
                 }
             });
@@ -93,6 +103,7 @@ class TestRun {
 }
 
 const run = async () => {
+    await new TestRun('only updates when we want it to', TEST_GAME_PATH, 200, '1006', 8, 3000, {}, { duration: 10 * 1000, shouldFail: false }, 4).run();
     await new TestRun('push the socket with 200fps', TEST_GAME_PATH, 200, '1005', 8, 3000, { avgFps: { min: 180, max: 205 } }).run();
     await new TestRun('100fps small node count', TEST_GAME_PATH, 100, '1005', 3, 3000, { avgFps: { min: 90, max: 110 } }).run();
     await new TestRun('100fps medium node count', TEST_GAME_PATH, 100, '1005', 5, 3000, { avgFps: { min: 90, max: 110 } }).run();
