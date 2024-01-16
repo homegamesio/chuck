@@ -20,5 +20,6 @@ insertVersion('0767');
 insertVersion('1000');
 insertVersion('1004');
 insertVersion('1005');
+insertVersion('1006');
 
 module.exports = squishMap;
