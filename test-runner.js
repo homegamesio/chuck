@@ -8,12 +8,10 @@ const target = process.env.TARGET_SERVER;
 
 const homegamesCorePath = path.dirname(require.resolve('homegames-core'));
 const homegamesDepsPath = path.join(homegamesCorePath, 'node_modules');
-const squishPath = require.resolve('squish-1005', { paths: [ homegamesDepsPath ] });
 
 const squishMap = require('./squish-map');
 
 const targetPort = Number(target.split(':')[1]);
-process.env.SQUISH_PATH=squishPath;
 
 // test game specific
 process.env.BASE_WIDTH = 2;
@@ -47,6 +45,13 @@ const handleGameFrame = (msg) => {
         process.exit(0);
     }
 };
+
+if (process.env.TIMEOUT && process.env.TIMEOUT !== 'null') {
+    setTimeout(() => {
+        console.log(`resultzz:${JSON.stringify(getStats(frames, process.env.SQUISH_PATH))}`);
+        process.exit(0);
+    }, process.env.TIMEOUT);
+}
 
 const handleMessage = (msg) => {
     const messageType = msg[0];
